@@ -1,0 +1,254 @@
+basePath: /
+definitions:
+  entities.Subscriptions:
+    properties:
+      end_date:
+        type: string
+      price:
+        type: integer
+      service_name:
+        type: string
+      start_date:
+        type: string
+      user_id:
+        type: string
+    type: object
+  entities.TotalCostResponse:
+    properties:
+      total_cost:
+        description: Суммарная стоимость в рублях
+        type: integer
+    type: object
+host: localhost:8082
+info:
+  contact:
+    email: support@effective.ru
+    name: API Support
+    url: http://www.effective.ru/support
+  description: REST-сервис для агрегации данных об онлайн-подписках пользователей
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Subscription Management API
+  version: "1.0"
+paths:
+  /subscriptions:
+    get:
+      consumes:
+      - application/json
+      description: Получает список подписок с возможностью фильтрации
+      parameters:
+      - description: ID пользователя (UUID)
+        in: query
+        name: user_id
+        type: string
+      - description: Название сервиса
+        in: query
+        name: service_name
+        type: string
+      - description: Дата начала подписки (MM-YYYY)
+        in: query
+        name: start_date
+        type: string
+      - description: Дата окончания подписки (MM-YYYY)
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список подписок
+          schema:
+            items:
+              $ref: '#/definitions/entities.Subscriptions'
+            type: array
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            type: string
+      summary: Список подписок
+      tags:
+      - subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Создает новую запись о подписке пользователя
+      parameters:
+      - description: Данные подписки
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/entities.Subscriptions'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: id созданной подписки
+          schema:
+            additionalProperties:
+              format: int64
+              type: integer
+            type: object
+        "400":
+          description: Ошибка в запросе
+          schema:
+            type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            type: string
+      summary: Создание подписки
+      tags:
+      - subscriptions
+  /subscriptions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет существующую подписку по её ID
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Статус удаления
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Некорректный ID
+          schema:
+            type: string
+        "404":
+          description: Подписка не найдена
+          schema:
+            type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            type: string
+      summary: Удаление подписки
+      tags:
+      - subscriptions
+    get:
+      consumes:
+      - application/json
+      description: Получает детальную информацию о подписке по её ID
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные подписки
+          schema:
+            $ref: '#/definitions/entities.Subscriptions'
+        "400":
+          description: Некорректный ID
+          schema:
+            type: string
+        "404":
+          description: Подписка не найдена
+          schema:
+            type: string
+      summary: Получение подписки
+      tags:
+      - subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Обновляет информацию о существующей подписке
+      parameters:
+      - description: ID подписки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Новые данные подписки
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/entities.Subscriptions'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статус обновления
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка в запросе
+          schema:
+            type: string
+        "404":
+          description: Подписка не найдена
+          schema:
+            type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            type: string
+      summary: Обновление подписки
+      tags:
+      - subscriptions
+  /subscriptions/cost:
+    get:
+      consumes:
+      - application/json
+      description: Рассчитывает суммарную стоимость всех подписок за выбранный период
+        с фильтрацией
+      parameters:
+      - description: Начало периода (MM-YYYY)
+        in: query
+        name: start_period
+        required: true
+        type: string
+      - description: Конец периода (MM-YYYY)
+        in: query
+        name: end_period
+        required: true
+        type: string
+      - description: ID пользователя (UUID)
+        in: query
+        name: user_id
+        type: string
+      - description: Название сервиса
+        in: query
+        name: service_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Суммарная стоимость
+          schema:
+            $ref: '#/definitions/entities.TotalCostResponse'
+        "400":
+          description: Ошибка в параметрах запроса
+          schema:
+            type: string
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            type: string
+      summary: Расчет стоимости подписок
+      tags:
+      - subscriptions
+schemes:
+- http
+swagger: "2.0"
